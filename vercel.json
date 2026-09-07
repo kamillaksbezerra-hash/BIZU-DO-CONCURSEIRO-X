@@ -41,6 +41,13 @@
     {
       "source": "/admin",
       "headers": [{"key":"Cache-Control","value":"no-store, max-age=0"}]
+    },
+    {
+      "source": "/private/(.*)",
+      "headers": [
+        {"key":"Cache-Control","value":"no-store, max-age=0"},
+        {"key":"Content-Type","value":"text/html; charset=utf-8"}
+      ]
     }
   ]
 }
