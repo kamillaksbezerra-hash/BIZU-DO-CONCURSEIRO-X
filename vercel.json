@@ -24,15 +24,6 @@
   ],
   "headers": [
     {
-      "source": "/private/admin",
-      "headers": [
-        {
-          "key": "X-Original-URL",
-          "value": "/admin"
-        }
-      ]
-    },
-    {
       "source": "/(.*)",
       "headers": [
         {
