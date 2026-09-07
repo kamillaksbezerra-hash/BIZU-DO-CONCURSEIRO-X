@@ -17,6 +17,25 @@ function mergeBizuCookies(...groups){
   return [...byName.values()];
 }
 
+function refreshedCookieHeader(original,setCookies){
+  const jar=new Map();
+  for(const part of String(original||'').split(';')){
+    const i=part.indexOf('=');
+    if(i<=0)continue;
+    jar.set(part.slice(0,i).trim(),part.slice(i+1).trim());
+  }
+  for(const value of setCookies||[]){
+    const first=String(value).split(';',1)[0];
+    const i=first.indexOf('=');
+    if(i<=0)continue;
+    const name=first.slice(0,i).trim(),val=first.slice(i+1).trim();
+    if(name==='bx_at'||name==='bx_rt'){
+      if(val)jar.set(name,val);else jar.delete(name);
+    }
+  }
+  return [...jar.entries()].map(([k,v])=>`${k}=${v}`).join('; ');
+}
+
 function commonHeaders(res,mode,role='unknown'){
   res.setHeader('Cache-Control','no-store, max-age=0');
   res.setHeader('X-Robots-Tag','noindex, nofollow, noarchive');
@@ -62,7 +81,7 @@ export default async function handler(req,res){
       'cache-control':'no-store',
       'x-original-url':mode==='admin'?'/private/admin':'/private/app',
       'x-forwarded-uri':mode==='admin'?'/private/admin':'/private/app',
-      cookie
+      cookie:refreshedCookieHeader(cookie,sessionCookies)
     };
     if(req.headers['user-agent'])headers['user-agent']=req.headers['user-agent'];
     if(req.headers['accept-language'])headers['accept-language']=req.headers['accept-language'];
