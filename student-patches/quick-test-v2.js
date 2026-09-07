@@ -48,7 +48,8 @@
 
   function enhanceControls(){
     const mode=el('qtMode'),course=el('qtCourse');
-    if(mode){
+    if(mode&&!mode.dataset.bxQtV2){
+      mode.dataset.bxQtV2='1';
       const old=mode.value;
       mode.innerHTML='<option value="rapido">Rápido • prioriza enunciados curtos</option><option value="random">Aleatório</option><option value="inteligente">Inteligente • prioriza dificuldades</option>';
       mode.value=['rapido','random','inteligente'].includes(old)?old:'rapido';
