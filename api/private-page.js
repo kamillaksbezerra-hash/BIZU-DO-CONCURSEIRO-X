@@ -36,12 +36,26 @@ function refreshedCookieHeader(original,setCookies){
   return [...jar.entries()].map(([k,v])=>`${k}=${v}`).join('; ');
 }
 
+function transformPrivateHtml(body,mode){
+  let html=String(body||'');
+  if(mode==='admin'){
+    html=html.replace(/<div class="label">ATALHOS<\/div>\s*<a href="\/">← Área do aluno<\/a>/g,'');
+    const enhancement='<script src="/admin-patches/admin-management-v1.js" defer></script>';
+    if(!html.includes('/admin-patches/admin-management-v1.js')){
+      html=html.includes('</body>')?html.replace('</body>',enhancement+'</body>'):html+enhancement;
+    }
+  }else{
+    html=html.replace(/<div class="label">ADMIN<\/div>\s*<a class="admin-link" href="\/admin">⚙ Área do Administrador<\/a>/g,'');
+  }
+  return html;
+}
+
 function commonHeaders(res,mode,role='unknown'){
   res.setHeader('Cache-Control','no-store, max-age=0');
   res.setHeader('X-Robots-Tag','noindex, nofollow, noarchive');
   res.setHeader('Referrer-Policy','same-origin');
   res.setHeader('Vary','Cookie');
-  res.setHeader('X-Bizu-Private-Proxy','v8-rbac');
+  res.setHeader('X-Bizu-Private-Proxy','v9-rbac-admin-ui');
   res.setHeader('X-Bizu-UI-Mode',mode);
   res.setHeader('X-Bizu-Session-Role',role);
 }
@@ -96,10 +110,11 @@ export default async function handler(req,res){
       return redirect(res,mode,target,role,cookies);
     }
 
-    const body=await upstream.text();
+    const body=transformPrivateHtml(await upstream.text(),mode);
     res.statusCode=upstream.status;
     res.setHeader('Content-Type','text/html; charset=utf-8');
     commonHeaders(res,mode,role);
+    res.setHeader('X-Bizu-UI-Patch',mode==='admin'?'admin-management-v1':'student-nav-clean');
     if(cookies.length)res.setHeader('Set-Cookie',cookies);
     return res.end(body);
   }catch(err){
