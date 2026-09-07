@@ -109,13 +109,11 @@ html.bx-runtime-ready body{overflow:auto!important}
     setTimeout(ensureBoot,900);
     setTimeout(release,2200);
     setTimeout(ensureBoot,3500);
-    try{
-      if(!window.__bxRuntimeObserver){
-        var root=document.body||document.documentElement;
-        window.__bxRuntimeObserver=new MutationObserver(function(){clearTimeout(window.__bxRuntimeDebounce);window.__bxRuntimeDebounce=setTimeout(release,30)});
-        window.__bxRuntimeObserver.observe(root,{childList:true,subtree:true});
-      }
-    }catch(_){}
+    var ticks=0,watch=setInterval(function(){
+      ticks++;release();
+      if(ticks===3||ticks===7)ensureBoot();
+      if(ticks>=12)clearInterval(watch);
+    },1000);
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
@@ -152,7 +150,7 @@ export default async function handler(req,res){
     res.setHeader('Cache-Control','no-store, max-age=0');
     res.setHeader('X-Robots-Tag','noindex, nofollow, noarchive');
     res.setHeader('Referrer-Policy','same-origin');
-    res.setHeader('X-Bizu-Private-Proxy','v6');
+    res.setHeader('X-Bizu-Private-Proxy','v6.1');
     res.setHeader('X-Bizu-UI-Mode',mode);
 
     const getSetCookie=upstream.headers.getSetCookie?.bind(upstream.headers);
@@ -168,7 +166,7 @@ export default async function handler(req,res){
     res.statusCode=503;
     res.setHeader('Content-Type','text/html; charset=utf-8');
     res.setHeader('Cache-Control','no-store, max-age=0');
-    res.setHeader('X-Bizu-Private-Proxy','v6');
+    res.setHeader('X-Bizu-Private-Proxy','v6.1');
     return res.end('<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Bizu X</title><body style="font-family:system-ui;background:#050914;color:#fff;padding:32px"><h1>Bizu X</h1><p>Não foi possível abrir a interface agora. Tente novamente.</p></body></html>');
   }
 }
