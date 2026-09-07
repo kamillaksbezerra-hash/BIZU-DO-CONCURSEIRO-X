@@ -3,8 +3,8 @@
   "cleanUrls": true,
   "git": {
     "deploymentEnabled": {
-      "main": false,
-      "recovery/production-2026-09-06": true
+      "main": true,
+      "recovery/production-2026-09-06": false
     }
   },
   "rewrites": [
