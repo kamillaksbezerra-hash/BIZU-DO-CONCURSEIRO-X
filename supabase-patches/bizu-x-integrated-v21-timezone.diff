@@ -1,0 +1,76 @@
+--- bizu-x-integrated.ts
++++ bizu-x-integrated-v21.ts
+@@ -31,6 +31,34 @@
+ const clamp = (value: number, minimum: number, maximum: number) =>
+   Math.max(minimum, Math.min(maximum, value));
+ 
++const BIZU_TIME_ZONE = "America/Sao_Paulo";
++
++function businessDateSaoPaulo(value: Date | string | number = new Date()) {
++  const date = value instanceof Date ? value : new Date(value);
++  const parts = new Intl.DateTimeFormat("en-US", {
++    timeZone: BIZU_TIME_ZONE,
++    year: "numeric",
++    month: "2-digit",
++    day: "2-digit",
++  }).formatToParts(date);
++  const map = Object.fromEntries(parts.map((part) => [part.type, part.value]));
++  return `${map.year}-${map.month}-${map.day}`;
++}
++
++function businessDateOrdinal(value: string) {
++  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ""));
++  if (!match) return null;
++  const ordinal = Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
++  return Number.isFinite(ordinal) ? ordinal / 86_400_000 : null;
++}
++
++function businessDaysUntil(value: string) {
++  const target = businessDateOrdinal(value);
++  const today = businessDateOrdinal(businessDateSaoPaulo());
++  if (target === null || today === null) return null;
++  return Math.max(0, Math.ceil(target - today));
++}
++
+ function fsrsNext(state: any, ratingLabel: string) {
+@@ -347,9 +375,7 @@
+   );
+   const examDate = preferences.exam_date || scope?.edict?.exam_date || null;
+-  const daysToExam = examDate
+-    ? Math.max(0, Math.ceil((new Date(`${examDate}T12:00:00Z`).getTime() - Date.now()) / 86_400_000))
+-    : null;
++  const daysToExam = examDate ? businessDaysUntil(String(examDate)) : null;
+@@ -737,7 +763,7 @@
+     open: entries.filter((entry: any) =>
+       entry.status === "open" &&
+       (!entry.registration_end ||
+-        new Date(`${entry.registration_end}T23:59:59Z`).getTime() >= Date.now())
++        String(entry.registration_end) >= businessDateSaoPaulo())
+     ),
+@@ -814,7 +840,7 @@
+   const timeline: Record<string, any> = {};
+   const getDay = (date: string) => {
+-    const key = new Date(date).toISOString().slice(0, 10);
++    const key = businessDateSaoPaulo(date);
+@@ -1189,7 +1215,7 @@
+       source_url: law.source_url,
+       source_name: law.source_name || "Fonte oficial",
+-      version_date: new Date().toISOString().slice(0, 10),
++      version_date: businessDateSaoPaulo(),
+@@ -1219,7 +1245,7 @@
+       svc.from("bizu_laws").update({
+         last_verified_at: fetchedAt,
+-        version_date: new Date().toISOString().slice(0, 10),
++        version_date: businessDateSaoPaulo(),
+@@ -1453,7 +1479,7 @@
+         svc.from("bizu_missions").select("*").eq("user_id", userId).eq(
+           "competition_id",
+           competitionId,
+-        ).eq("due_date", new Date().toISOString().slice(0, 10)).order(
++        ).eq("due_date", businessDateSaoPaulo()).order(
+@@ -1488,7 +1514,7 @@
+           target_value: radar.minutes,
+           unit: "minutos",
+-          due_date: new Date().toISOString().slice(0, 10),
++          due_date: businessDateSaoPaulo(),
+           status: "pending",
