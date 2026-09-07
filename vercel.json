@@ -4,6 +4,7 @@
   "git": {
     "deploymentEnabled": {
       "main": true,
+      "fix/private-proxy-css-2026-09-06": true,
       "fix/stale-session-login-2026-09-06": false,
       "fix/private-loading-timeout-2026-09-06": false,
       "fix/login-input-focus-2026-09-06": false,
@@ -13,16 +14,16 @@
   },
   "rewrites": [
     {
-      "source": "/api/:path*",
-      "destination": "https://xizvzwvvtfavsxtyosso.supabase.co/functions/v1/bizu-x-api/:path*"
+      "source": "/private/app",
+      "destination": "/api/private-page?mode=student"
     },
     {
       "source": "/private/admin",
-      "destination": "https://xizvzwvvtfavsxtyosso.supabase.co/functions/v1/bizu-x-private-ui/admin"
+      "destination": "/api/private-page?mode=admin"
     },
     {
-      "source": "/private/:path*",
-      "destination": "https://xizvzwvvtfavsxtyosso.supabase.co/functions/v1/bizu-x-private-ui/:path*"
+      "source": "/api/:path*",
+      "destination": "https://xizvzwvvtfavsxtyosso.supabase.co/functions/v1/bizu-x-api/:path*"
     }
   ],
   "headers": [
