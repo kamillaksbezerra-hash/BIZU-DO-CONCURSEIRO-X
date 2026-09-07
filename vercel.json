@@ -3,8 +3,8 @@
   "cleanUrls": true,
   "git": {
     "deploymentEnabled": {
-      "main": false,
-      "fix/stale-session-login-2026-09-06": true,
+      "main": true,
+      "fix/stale-session-login-2026-09-06": false,
       "fix/private-loading-timeout-2026-09-06": false,
       "fix/login-input-focus-2026-09-06": false,
       "recovery/production-2026-09-06": false,
@@ -33,6 +33,14 @@
         {"key": "X-Content-Type-Options", "value": "nosniff"},
         {"key": "Referrer-Policy", "value": "same-origin"}
       ]
+    },
+    {
+      "source": "/",
+      "headers": [{"key":"Cache-Control","value":"no-store, max-age=0"}]
+    },
+    {
+      "source": "/admin",
+      "headers": [{"key":"Cache-Control","value":"no-store, max-age=0"}]
     }
   ]
 }
