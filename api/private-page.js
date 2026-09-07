@@ -1,64 +1,132 @@
 const SUPABASE_PRIVATE_UI='https://xizvzwvvtfavsxtyosso.supabase.co/functions/v1/bizu-x-private-ui';
 
-const STUDENT_UNLOCK=`
-<style id="bx-private-unlock-css">
-html.bx-ui-ready,html.bx-ui-ready body{pointer-events:auto!important}
-html.bx-ui-ready body{overflow:auto!important}
-html.bx-ui-ready #bxOnboarding.bx-stale-onboarding{display:none!important;pointer-events:none!important;visibility:hidden!important}
+const STUDENT_RUNTIME_GUARD=`
+<style id="bx-runtime-guard-css">
+html.bx-runtime-ready,html.bx-runtime-ready body{pointer-events:auto!important}
+html.bx-runtime-ready body{overflow:auto!important}
 </style>
-<script id="bx-private-unlock-js">
+<script id="bx-runtime-guard-js">
 (function(){
-  function unlock(){
+  if(window.__bxRuntimeGuardV6)return;
+  window.__bxRuntimeGuardV6=true;
+  var bootBusy=false;
+
+  function page(id){
+    if(!id)return false;
+    var target=document.getElementById(id);
+    if(!target||!target.classList.contains('page'))return false;
+    document.querySelectorAll('.page').forEach(function(p){p.classList.toggle('active',p===target)});
+    document.querySelectorAll('.nav button[data-p]').forEach(function(b){b.classList.toggle('active',b.dataset.p===id)});
+    var side=document.getElementById('side');if(side)side.classList.remove('open');
+    try{window.scrollTo(0,0)}catch(_){}
+    return true;
+  }
+
+  if(typeof window.jump!=='function')window.jump=page;
+
+  document.addEventListener('click',function(ev){
+    var t=ev.target&&ev.target.closest&&ev.target.closest('.nav button[data-p],[data-jump]');
+    if(!t)return;
+    var id=t.dataset.p||t.dataset.jump;
+    if(id&&document.getElementById(id))page(id);
+  },true);
+
+  function hasConfiguredCourse(){
     try{
-      var boot=window.BX&&window.BX.boot;
-      var profile=boot&&boot.profile||{};
-      var prefs=profile.preferences||{};
-      var hasCourse=!!(profile.target_course_id||(boot&&boot.context&&boot.context.course&&boot.context.course.id));
+      var b=window.BX&&window.BX.boot||{};
+      var p=b.profile||{};
+      return !!(p.target_course_id||(b.context&&b.context.course&&b.context.course.id));
+    }catch(_){return false}
+  }
+
+  function release(){
+    try{
+      document.documentElement.classList.add('bx-runtime-ready');
+      document.documentElement.style.pointerEvents='auto';
+      if(document.body){document.body.style.pointerEvents='auto'}
+
       var onboard=document.getElementById('bxOnboarding');
-      if(hasCourse&&onboard&&!prefs.onboarding_completed){
-        onboard.classList.add('bx-stale-onboarding');
-        setTimeout(function(){try{onboard.remove()}catch(_){}},0);
+      if(onboard&&hasConfiguredCourse()){
+        onboard.style.pointerEvents='none';
+        onboard.style.display='none';
+        try{onboard.remove()}catch(_){}
       }
-      document.documentElement.classList.add('bx-ui-ready');
-      if(document.body){
-        document.body.style.pointerEvents='auto';
-        if(!document.querySelector('.bx-modal.open'))document.body.style.overflow='';
-      }
+
       document.querySelectorAll('[inert]').forEach(function(n){
         if(n.id!=='bxOnboarding')n.removeAttribute('inert');
       });
-    }catch(_){}
-  }
-  function watch(){
-    try{
-      var root=document.body||document.documentElement;
-      if(!root||window.__bxUnlockObserver)return;
-      window.__bxUnlockObserver=new MutationObserver(function(ms){
-        for(var i=0;i<ms.length;i++){
-          var added=ms[i].addedNodes||[];
-          for(var j=0;j<added.length;j++){
-            var n=added[j];
-            if(n&&n.nodeType===1&&(n.id==='bxOnboarding'||(n.querySelector&&n.querySelector('#bxOnboarding')))){
-              setTimeout(unlock,0);
-              return;
-            }
-          }
+
+      var w=Math.max(1,window.innerWidth||1),h=Math.max(1,window.innerHeight||1);
+      document.querySelectorAll('body *').forEach(function(n){
+        if(!n||n.id==='side'||n.classList&&n.classList.contains('side'))return;
+        if(n.closest&&n.closest('.bx-modal.open'))return;
+        var cs;try{cs=getComputedStyle(n)}catch(_){return}
+        if(!cs||cs.display==='none'||cs.visibility==='hidden'||cs.pointerEvents==='none'||cs.position!=='fixed')return;
+        var r;try{r=n.getBoundingClientRect()}catch(_){return}
+        if(r.width<w*.88||r.height<h*.82)return;
+        var txt=String(n.textContent||'').replace(/\s+/g,' ').trim();
+        var z=parseInt(cs.zIndex,10)||0;
+        if(z>=20&&/carregando|abrindo|preparando|aguarde/i.test(txt)){
+          n.style.pointerEvents='none';
+          n.style.display='none';
         }
       });
-      window.__bxUnlockObserver.observe(root,{childList:true,subtree:true});
     }catch(_){}
   }
-  function start(){watch();unlock();setTimeout(unlock,300);setTimeout(unlock,1800);setTimeout(unlock,5000)}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
-  else start();
-  addEventListener('pageshow',function(){watch();unlock()});
+
+  function callRenderers(){
+    ['renderDashboard','renderMissions','renderNews','renderContent','renderReviewsErrors','renderStats','renderProfile','renderSims'].forEach(function(k){
+      try{if(typeof window[k]==='function')window[k]()}catch(e){console.warn('[Bizu runtime]',k,e)}
+    });
+  }
+
+  async function ensureBoot(){
+    if(bootBusy)return;
+    var existing=window.BX&&window.BX.boot;
+    if(existing&&(existing.context||existing.courses||existing.profile)){
+      release();callRenderers();return;
+    }
+    bootBusy=true;
+    var c=new AbortController(),timer=setTimeout(function(){c.abort()},20000);
+    try{
+      var r=await fetch('/api/integrated/bootstrap',{credentials:'include',cache:'no-store',signal:c.signal});
+      if(r.status===401){location.replace('/');return}
+      if(!r.ok)throw new Error('bootstrap '+r.status);
+      var d=await r.json();
+      window.BX=window.BX||{};
+      window.BX.boot=Object.assign({},window.BX.boot||{},d||{});
+      release();
+      callRenderers();
+      try{window.dispatchEvent(new CustomEvent('bizu:boot-ready',{detail:{source:'runtime-guard-v6'}}))}catch(_){}
+    }catch(e){console.warn('[Bizu runtime] bootstrap rescue',e)}
+    finally{clearTimeout(timer);bootBusy=false;release()}
+  }
+
+  function start(){
+    release();
+    setTimeout(release,150);
+    setTimeout(release,700);
+    setTimeout(ensureBoot,900);
+    setTimeout(release,2200);
+    setTimeout(ensureBoot,3500);
+    try{
+      if(!window.__bxRuntimeObserver){
+        var root=document.body||document.documentElement;
+        window.__bxRuntimeObserver=new MutationObserver(function(){clearTimeout(window.__bxRuntimeDebounce);window.__bxRuntimeDebounce=setTimeout(release,30)});
+        window.__bxRuntimeObserver.observe(root,{childList:true,subtree:true});
+      }
+    }catch(_){}
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+  addEventListener('pageshow',function(){release();setTimeout(ensureBoot,200)});
 })();
 </script>`;
 
-function injectStudentUnlock(html){
+function injectStudentRuntimeGuard(html){
   if(!html||typeof html!=='string')return html;
-  if(html.includes('id="bx-private-unlock-js"'))return html;
-  return html.includes('</body>')?html.replace('</body>',STUDENT_UNLOCK+'</body>'):html+STUDENT_UNLOCK;
+  if(html.includes('id="bx-runtime-guard-js"'))return html;
+  return html.includes('</body>')?html.replace('</body>',STUDENT_RUNTIME_GUARD+'</body>'):html+STUDENT_RUNTIME_GUARD;
 }
 
 export default async function handler(req,res){
@@ -77,17 +145,16 @@ export default async function handler(req,res){
 
     const upstream=await fetch(upstreamUrl,{method:'GET',headers,redirect:'manual',cache:'no-store'});
     let body=await upstream.text();
-    if(mode==='student'&&upstream.status===200)body=injectStudentUnlock(body);
+    if(mode==='student'&&upstream.status===200)body=injectStudentRuntimeGuard(body);
 
     res.statusCode=upstream.status;
     res.setHeader('Content-Type','text/html; charset=utf-8');
     res.setHeader('Cache-Control','no-store, max-age=0');
-    res.setHeader('X-Robots-Tag','noindex, nofollow,noarchive');
+    res.setHeader('X-Robots-Tag','noindex, nofollow, noarchive');
     res.setHeader('Referrer-Policy','same-origin');
-    res.setHeader('X-Bizu-Private-Proxy','v4');
+    res.setHeader('X-Bizu-Private-Proxy','v6');
     res.setHeader('X-Bizu-UI-Mode',mode);
 
-    // Preserve refreshed auth cookies without forwarding the upstream CSP.
     const getSetCookie=upstream.headers.getSetCookie?.bind(upstream.headers);
     const setCookies=getSetCookie?getSetCookie():[];
     if(setCookies.length)res.setHeader('Set-Cookie',setCookies);
@@ -101,7 +168,7 @@ export default async function handler(req,res){
     res.statusCode=503;
     res.setHeader('Content-Type','text/html; charset=utf-8');
     res.setHeader('Cache-Control','no-store, max-age=0');
-    res.setHeader('X-Bizu-Private-Proxy','v4');
+    res.setHeader('X-Bizu-Private-Proxy','v6');
     return res.end('<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Bizu X</title><body style="font-family:system-ui;background:#050914;color:#fff;padding:32px"><h1>Bizu X</h1><p>Não foi possível abrir a interface agora. Tente novamente.</p></body></html>');
   }
 }
