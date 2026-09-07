@@ -46,9 +46,11 @@ function transformPrivateHtml(body,mode){
     }
   }else{
     html=html.replace(/<div class="label">ADMIN<\/div>\s*<a class="admin-link" href="\/admin">⚙ Área do Administrador<\/a>/g,'');
-    const questions='<script src="/student-patches/questions-v2.js" defer></script>';
-    if(!html.includes('/student-patches/questions-v2.js')){
-      html=html.includes('</body>')?html.replace('</body>',questions+'</body>'):html+questions;
+    const studentPatches=['/student-patches/questions-v2.js','/student-patches/quick-test-v2.js'];
+    for(const src of studentPatches){
+      if(html.includes(src))continue;
+      const tag=`<script src="${src}" defer></script>`;
+      html=html.includes('</body>')?html.replace('</body>',tag+'</body>'):html+tag;
     }
   }
   return html;
@@ -59,7 +61,7 @@ function commonHeaders(res,mode,role='unknown'){
   res.setHeader('X-Robots-Tag','noindex, nofollow, noarchive');
   res.setHeader('Referrer-Policy','same-origin');
   res.setHeader('Vary','Cookie');
-  res.setHeader('X-Bizu-Private-Proxy','v10-rbac-ui-patches');
+  res.setHeader('X-Bizu-Private-Proxy','v11-rbac-student-modules');
   res.setHeader('X-Bizu-UI-Mode',mode);
   res.setHeader('X-Bizu-Session-Role',role);
 }
@@ -118,7 +120,7 @@ export default async function handler(req,res){
     res.statusCode=upstream.status;
     res.setHeader('Content-Type','text/html; charset=utf-8');
     commonHeaders(res,mode,role);
-    res.setHeader('X-Bizu-UI-Patch',mode==='admin'?'admin-management-v1':'questions-v2');
+    res.setHeader('X-Bizu-UI-Patch',mode==='admin'?'admin-management-v1':'questions-v2+quick-test-v2');
     if(cookies.length)res.setHeader('Set-Cookie',cookies);
     return res.end(body);
   }catch(err){
