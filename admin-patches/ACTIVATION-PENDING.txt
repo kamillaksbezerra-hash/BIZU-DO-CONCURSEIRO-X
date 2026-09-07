@@ -1,0 +1,1 @@
+ADMIN v2 source is versioned. Activation must occur through api/private-page.js after Preview validation.
