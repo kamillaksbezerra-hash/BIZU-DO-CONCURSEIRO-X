@@ -3,8 +3,9 @@
   "cleanUrls": true,
   "git": {
     "deploymentEnabled": {
-      "main": true,
-      "recovery/production-2026-09-06": false
+      "main": false,
+      "recovery/production-2026-09-06": false,
+      "fix/admin-route-2026-09-06": true
     }
   },
   "rewrites": [
@@ -22,6 +23,15 @@
     }
   ],
   "headers": [
+    {
+      "source": "/private/admin",
+      "headers": [
+        {
+          "key": "X-Original-URL",
+          "value": "/admin"
+        }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [
