@@ -2,7 +2,10 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "cleanUrls": true,
   "git": {
-    "deploymentEnabled": false
+    "deploymentEnabled": {
+      "main": false,
+      "recovery/production-2026-09-06": true
+    }
   },
   "rewrites": [
     {
