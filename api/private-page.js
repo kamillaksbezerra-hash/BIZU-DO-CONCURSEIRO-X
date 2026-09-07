@@ -10,7 +10,7 @@ html.bx-ui-ready #bxOnboarding.bx-stale-onboarding{display:none!important;pointe
 (function(){
   function unlock(){
     try{
-      var boot=window.BX&&BX.boot;
+      var boot=window.BX&&window.BX.boot;
       var profile=boot&&boot.profile||{};
       var prefs=profile.preferences||{};
       var hasCourse=!!(profile.target_course_id||(boot&&boot.context&&boot.context.course&&boot.context.course.id));
@@ -20,18 +20,38 @@ html.bx-ui-ready #bxOnboarding.bx-stale-onboarding{display:none!important;pointe
         setTimeout(function(){try{onboard.remove()}catch(_){}},0);
       }
       document.documentElement.classList.add('bx-ui-ready');
-      document.body.style.pointerEvents='auto';
-      if(!document.querySelector('.bx-modal.open'))document.body.style.overflow='';
+      if(document.body){
+        document.body.style.pointerEvents='auto';
+        if(!document.querySelector('.bx-modal.open'))document.body.style.overflow='';
+      }
       document.querySelectorAll('[inert]').forEach(function(n){
         if(n.id!=='bxOnboarding')n.removeAttribute('inert');
       });
     }catch(_){}
   }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){setTimeout(unlock,300)},{once:true});
-  else setTimeout(unlock,300);
-  setTimeout(unlock,1800);
-  setTimeout(unlock,5000);
-  addEventListener('pageshow',unlock);
+  function watch(){
+    try{
+      var root=document.body||document.documentElement;
+      if(!root||window.__bxUnlockObserver)return;
+      window.__bxUnlockObserver=new MutationObserver(function(ms){
+        for(var i=0;i<ms.length;i++){
+          var added=ms[i].addedNodes||[];
+          for(var j=0;j<added.length;j++){
+            var n=added[j];
+            if(n&&n.nodeType===1&&(n.id==='bxOnboarding'||(n.querySelector&&n.querySelector('#bxOnboarding')))){
+              setTimeout(unlock,0);
+              return;
+            }
+          }
+        }
+      });
+      window.__bxUnlockObserver.observe(root,{childList:true,subtree:true});
+    }catch(_){}
+  }
+  function start(){watch();unlock();setTimeout(unlock,300);setTimeout(unlock,1800);setTimeout(unlock,5000)}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});
+  else start();
+  addEventListener('pageshow',function(){watch();unlock()});
 })();
 </script>`;
 
@@ -64,7 +84,7 @@ export default async function handler(req,res){
     res.setHeader('Cache-Control','no-store, max-age=0');
     res.setHeader('X-Robots-Tag','noindex, nofollow, noarchive');
     res.setHeader('Referrer-Policy','same-origin');
-    res.setHeader('X-Bizu-Private-Proxy','v3');
+    res.setHeader('X-Bizu-Private-Proxy','v4');
     res.setHeader('X-Bizu-UI-Mode',mode);
 
     // Preserve refreshed auth cookies without forwarding the upstream CSP.
@@ -81,7 +101,7 @@ export default async function handler(req,res){
     res.statusCode=503;
     res.setHeader('Content-Type','text/html; charset=utf-8');
     res.setHeader('Cache-Control','no-store, max-age=0');
-    res.setHeader('X-Bizu-Private-Proxy','v3');
+    res.setHeader('X-Bizu-Private-Proxy','v4');
     return res.end('<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Bizu X</title><body style="font-family:system-ui;background:#050914;color:#fff;padding:32px"><h1>Bizu X</h1><p>Não foi possível abrir a interface agora. Tente novamente.</p></body></html>');
   }
 }
