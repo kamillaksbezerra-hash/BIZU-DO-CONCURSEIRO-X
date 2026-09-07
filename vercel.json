@@ -3,7 +3,8 @@
   "cleanUrls": true,
   "git": {
     "deploymentEnabled": {
-      "main": true,
+      "main": false,
+      "fix/stale-session-login-2026-09-06": true,
       "fix/private-loading-timeout-2026-09-06": false,
       "fix/login-input-focus-2026-09-06": false,
       "recovery/production-2026-09-06": false,
