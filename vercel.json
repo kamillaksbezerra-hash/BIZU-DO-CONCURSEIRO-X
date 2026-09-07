@@ -3,8 +3,8 @@
   "cleanUrls": true,
   "git": {
     "deploymentEnabled": {
-      "main": false,
-      "fix/login-input-focus-2026-09-06": true,
+      "main": true,
+      "fix/login-input-focus-2026-09-06": false,
       "recovery/production-2026-09-06": false,
       "fix/admin-route-2026-09-06": false
     }
