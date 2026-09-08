@@ -26,6 +26,10 @@
       "destination": "https://xizvzwvvtfavsxtyosso.supabase.co/functions/v1/bizu-cronograma-x-e2e-v2-temp"
     },
     {
+      "source": "/api/study-timer",
+      "destination": "https://xizvzwvvtfavsxtyosso.supabase.co/functions/v1/bizu-create-student-test"
+    },
+    {
       "source": "/api/actions/:path*",
       "destination": "https://xizvzwvvtfavsxtyosso.supabase.co/functions/v1/bizu-x-actions-api/:path*"
     },
