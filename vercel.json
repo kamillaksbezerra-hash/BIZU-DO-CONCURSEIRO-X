@@ -34,6 +34,10 @@
       "destination": "https://xizvzwvvtfavsxtyosso.supabase.co/functions/v1/bizu-x-actions-api/:path*"
     },
     {
+      "source": "/api/file",
+      "destination": "https://xizvzwvvtfavsxtyosso.supabase.co/functions/v1/bizu-asset-readonly-temp"
+    },
+    {
       "source": "/api/:path*",
       "destination": "https://xizvzwvvtfavsxtyosso.supabase.co/functions/v1/bizu-x-api/:path*"
     }
