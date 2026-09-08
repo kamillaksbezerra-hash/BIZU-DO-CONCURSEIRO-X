@@ -50,7 +50,7 @@ function transformPrivateHtml(body,mode,role='student'){
     else html=html.replace(/<div class="label">ADMIN<\/div>\s*<a class="admin-link" href="\/admin">⚙ Área do Administrador<\/a>/g,'');
     const earlySrc='/student-patches/shared-core-v1.js';
     if(!html.includes(earlySrc)){const tag=`<script src="${earlySrc}"></script>`;if(/<head[^>]*>/i.test(html))html=html.replace(/<head[^>]*>/i,m=>m+tag);else html=tag+html}
-    const studentPatches=['/student-patches/questions-v2.js','/student-patches/quick-test-v2.js','/student-patches/study-tools-loader-v1.js?v=20260908perf2'];
+    const studentPatches=['/student-patches/questions-v2.js','/student-patches/quick-test-v2.js','/student-patches/study-tools-model-v2-loader.js?v=20260908approved2'];
     for(const src of studentPatches){if(html.includes(src))continue;const tag=`<script src="${src}" defer></script>`;html=html.includes('</body>')?html.replace('</body>',tag+'</body>'):html+tag}
   }
   return html;
@@ -60,7 +60,7 @@ function commonHeaders(res,mode,role='unknown'){
   res.setHeader('X-Robots-Tag','noindex,nofollow,noarchive');
   res.setHeader('Referrer-Policy','same-origin');
   res.setHeader('Vary','Cookie');
-  res.setHeader('X-Bizu-Private-Proxy','v18-performance-runtime');
+  res.setHeader('X-Bizu-Private-Proxy','v19-approved-ui-performance');
   res.setHeader('X-Bizu-UI-Mode',mode);
   res.setHeader('X-Bizu-Session-Role',role);
 }
@@ -91,7 +91,7 @@ export default async function handler(req,res){
     if(upstream.status===403){const target=mode==='admin'?'/private/app':'/private/admin';return redirect(res,mode,target,role,cookies)}
     const body=transformPrivateHtml(await upstream.text(),mode,role);
     res.statusCode=upstream.status;res.setHeader('Content-Type','text/html; charset=utf-8');commonHeaders(res,mode,role);
-    res.setHeader('X-Bizu-UI-Patch',mode==='admin'?'admin-management-v2+notices-stability+security-v3+student-preview-link':'shared-core-v1+questions-v2+quick-test-v2+study-tools-lazy+cronometro-v3+runtime-debounce');
+    res.setHeader('X-Bizu-UI-Patch',mode==='admin'?'admin-management-v2+notices-stability+security-v3+student-preview-link':'shared-core-v1+questions-v2+quick-test-v2+approved-cronograma-v2+approved-cronometro-v2+scoped-runtime');
     if(cookies.length)res.setHeader('Set-Cookie',cookies);return res.end(body);
   }catch(err){
     res.statusCode=503;res.setHeader('Content-Type','text/html; charset=utf-8');commonHeaders(res,mode,'error');
