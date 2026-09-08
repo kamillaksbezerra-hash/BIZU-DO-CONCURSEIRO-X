@@ -6,7 +6,7 @@ export default function handler(req,res){
     const code=fs.readFileSync(path.join(process.cwd(),'api','private-page.js'),'utf8');
     const checks={
       admin_student_redirect_removed:!code.includes("if(mode==='student'&&role==='admin')"),
-      transform_receives_role:code.includes('transformPrivateHtml(await upstream.text(),mode,role)'),
+      transform_receives_role:/transformPrivateHtml\(await upstream\.text\(\),\s*mode,\s*role\)/.test(code),
       timer_patch_injected:code.includes('/student-patches/cronometro-inteligente-v2.js?v=20260908b'),
       admin_student_link_enabled:code.includes('<a href=\"/private/app\">← Área do aluno</a>')&&code.includes('<a class=\"admin-link\" href=\"/private/admin\">')
     };
