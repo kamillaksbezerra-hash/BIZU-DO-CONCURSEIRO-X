@@ -36,10 +36,10 @@ function refreshedCookieHeader(original,setCookies){
   return [...jar.entries()].map(([k,v])=>`${k}=${v}`).join('; ');
 }
 
-function transformPrivateHtml(body,mode){
+function transformPrivateHtml(body,mode,role='student'){
   let html=String(body||'');
   if(mode==='admin'){
-    html=html.replace(/<div class="label">ATALHOS<\/div>\s*<a href="\/">← Área do aluno<\/a>/g,'');
+    html=html.replace(/<a href="\/">← Área do aluno<\/a>/g,'<a href="/private/app">← Área do aluno</a>');
     const adminPatches=['/admin-patches/admin-management-v2.js','/admin-patches/admin-management-v2-stability.js','/admin-patches/admin-security-v3.js'];
     for(const src of adminPatches){
       if(html.includes(src))continue;
@@ -47,14 +47,18 @@ function transformPrivateHtml(body,mode){
       html=html.includes('</body>')?html.replace('</body>',tag+'</body>'):html+tag;
     }
   }else{
-    html=html.replace(/<div class="label">ADMIN<\/div>\s*<a class="admin-link" href="\/admin">⚙ Área do Administrador<\/a>/g,'');
+    if(role==='admin'){
+      html=html.replace(/<a class="admin-link" href="\/admin">/g,'<a class="admin-link" href="/private/admin">');
+    }else{
+      html=html.replace(/<div class="label">ADMIN<\/div>\s*<a class="admin-link" href="\/admin">⚙ Área do Administrador<\/a>/g,'');
+    }
     const earlySrc='/student-patches/shared-core-v1.js';
     if(!html.includes(earlySrc)){
       const tag=`<script src="${earlySrc}"></script>`;
       if(/<head[^>]*>/i.test(html))html=html.replace(/<head[^>]*>/i,m=>m+tag);
       else html=tag+html;
     }
-    const studentPatches=['/student-patches/questions-v2.js','/student-patches/quick-test-v2.js','/student-patches/cronograma-inteligente-v2.js','/student-patches/cronometro-inteligente-v2.js'];
+    const studentPatches=['/student-patches/questions-v2.js','/student-patches/quick-test-v2.js','/student-patches/cronograma-inteligente-v2.js','/student-patches/cronometro-inteligente-v2.js?v=20260908b'];
     for(const src of studentPatches){
       if(html.includes(src))continue;
       const tag=`<script src="${src}" defer></script>`;
@@ -66,10 +70,10 @@ function transformPrivateHtml(body,mode){
 
 function commonHeaders(res,mode,role='unknown'){
   res.setHeader('Cache-Control','no-store, max-age=0');
-  res.setHeader('X-Robots-Tag','noindex, nofollow, noarchive');
+  res.setHeader('X-Robots-Tag','noindex,nofollow,noarchive');
   res.setHeader('Referrer-Policy','same-origin');
   res.setHeader('Vary','Cookie');
-  res.setHeader('X-Bizu-Private-Proxy','v15-cronometro-inteligente-v2');
+  res.setHeader('X-Bizu-Private-Proxy','v16-admin-student-preview');
   res.setHeader('X-Bizu-UI-Mode',mode);
   res.setHeader('X-Bizu-Session-Role',role);
 }
@@ -101,7 +105,6 @@ export default async function handler(req,res){
     const role=data?.role==='admin'?'admin':'student';
 
     if(mode==='admin'&&role!=='admin')return redirect(res,mode,'/private/app',role,sessionCookies);
-    if(mode==='student'&&role==='admin')return redirect(res,mode,'/private/admin',role,sessionCookies);
 
     const upstreamUrl=`${SUPABASE_PRIVATE_UI}/${mode==='admin'?'admin':'app'}`;
     const headers={
@@ -124,11 +127,11 @@ export default async function handler(req,res){
       return redirect(res,mode,target,role,cookies);
     }
 
-    const body=transformPrivateHtml(await upstream.text(),mode);
+    const body=transformPrivateHtml(await upstream.text(),mode,role);
     res.statusCode=upstream.status;
     res.setHeader('Content-Type','text/html; charset=utf-8');
     commonHeaders(res,mode,role);
-    res.setHeader('X-Bizu-UI-Patch',mode==='admin'?'admin-management-v2+notices-stability+security-v3':'shared-core-v1+questions-v2+quick-test-v2+cronograma-inteligente-v2+cronometro-inteligente-v2');
+    res.setHeader('X-Bizu-UI-Patch',mode==='admin'?'admin-management-v2+notices-stability+security-v3+student-preview-link':'shared-core-v1+questions-v2+quick-test-v2+cronograma-inteligente-v2+cronometro-inteligente-v2');
     if(cookies.length)res.setHeader('Set-Cookie',cookies);
     return res.end(body);
   }catch(err){
