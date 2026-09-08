@@ -66,7 +66,7 @@ function transformPrivateHtml(body,mode){
 
 function commonHeaders(res,mode,role='unknown'){
   res.setHeader('Cache-Control','no-store, max-age=0');
-  res.setHeader('X-Robots-Tag','noindex, nofollow,noarchive');
+  res.setHeader('X-Robots-Tag','noindex, nofollow, noarchive');
   res.setHeader('Referrer-Policy','same-origin');
   res.setHeader('Vary','Cookie');
   res.setHeader('X-Bizu-Private-Proxy','v14-cronograma-inteligente-v2');
