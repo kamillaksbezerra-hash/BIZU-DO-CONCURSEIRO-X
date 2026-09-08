@@ -48,6 +48,12 @@ function transformPrivateHtml(body,mode){
     }
   }else{
     html=html.replace(/<div class="label">ADMIN<\/div>\s*<a class="admin-link" href="\/admin">⚙ Área do Administrador<\/a>/g,'');
+    const earlySrc='/student-patches/shared-core-v1.js';
+    if(!html.includes(earlySrc)){
+      const tag=`<script src="${earlySrc}"></script>`;
+      if(/<head[^>]*>/i.test(html))html=html.replace(/<head[^>]*>/i,m=>m+tag);
+      else html=tag+html;
+    }
     const studentPatches=['/student-patches/questions-v2.js','/student-patches/quick-test-v2.js'];
     for(const src of studentPatches){
       if(html.includes(src))continue;
@@ -63,7 +69,7 @@ function commonHeaders(res,mode,role='unknown'){
   res.setHeader('X-Robots-Tag','noindex, nofollow, noarchive');
   res.setHeader('Referrer-Policy','same-origin');
   res.setHeader('Vary','Cookie');
-  res.setHeader('X-Bizu-Private-Proxy','v12.1-admin-v2');
+  res.setHeader('X-Bizu-Private-Proxy','v12.2-shared-core');
   res.setHeader('X-Bizu-UI-Mode',mode);
   res.setHeader('X-Bizu-Session-Role',role);
 }
@@ -122,7 +128,7 @@ export default async function handler(req,res){
     res.statusCode=upstream.status;
     res.setHeader('Content-Type','text/html; charset=utf-8');
     commonHeaders(res,mode,role);
-    res.setHeader('X-Bizu-UI-Patch',mode==='admin'?'admin-management-v2+notices-stability':'questions-v2+quick-test-v2');
+    res.setHeader('X-Bizu-UI-Patch',mode==='admin'?'admin-management-v2+notices-stability':'shared-core-v1+questions-v2+quick-test-v2');
     if(cookies.length)res.setHeader('Set-Cookie',cookies);
     return res.end(body);
   }catch(err){
