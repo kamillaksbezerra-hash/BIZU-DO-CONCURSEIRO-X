@@ -54,7 +54,7 @@ function transformPrivateHtml(body,mode){
       if(/<head[^>]*>/i.test(html))html=html.replace(/<head[^>]*>/i,m=>m+tag);
       else html=tag+html;
     }
-    const studentPatches=['/student-patches/questions-v2.js','/student-patches/quick-test-v2.js','/student-patches/cronograma-inteligente-v2.js'];
+    const studentPatches=['/student-patches/questions-v2.js','/student-patches/quick-test-v2.js','/student-patches/cronograma-inteligente-v2.js','/student-patches/cronometro-inteligente-v2.js'];
     for(const src of studentPatches){
       if(html.includes(src))continue;
       const tag=`<script src="${src}" defer></script>`;
@@ -69,7 +69,7 @@ function commonHeaders(res,mode,role='unknown'){
   res.setHeader('X-Robots-Tag','noindex, nofollow, noarchive');
   res.setHeader('Referrer-Policy','same-origin');
   res.setHeader('Vary','Cookie');
-  res.setHeader('X-Bizu-Private-Proxy','v14-cronograma-inteligente-v2');
+  res.setHeader('X-Bizu-Private-Proxy','v15-cronometro-inteligente-v2');
   res.setHeader('X-Bizu-UI-Mode',mode);
   res.setHeader('X-Bizu-Session-Role',role);
 }
@@ -128,7 +128,7 @@ export default async function handler(req,res){
     res.statusCode=upstream.status;
     res.setHeader('Content-Type','text/html; charset=utf-8');
     commonHeaders(res,mode,role);
-    res.setHeader('X-Bizu-UI-Patch',mode==='admin'?'admin-management-v2+notices-stability+security-v3':'shared-core-v1+questions-v2+quick-test-v2+cronograma-inteligente-v2');
+    res.setHeader('X-Bizu-UI-Patch',mode==='admin'?'admin-management-v2+notices-stability+security-v3':'shared-core-v1+questions-v2+quick-test-v2+cronograma-inteligente-v2+cronometro-inteligente-v2');
     if(cookies.length)res.setHeader('Set-Cookie',cookies);
     return res.end(body);
   }catch(err){
