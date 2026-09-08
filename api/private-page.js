@@ -40,7 +40,7 @@ function transformPrivateHtml(body,mode){
   let html=String(body||'');
   if(mode==='admin'){
     html=html.replace(/<div class="label">ATALHOS<\/div>\s*<a href="\/">← Área do aluno<\/a>/g,'');
-    const adminPatches=['/admin-patches/admin-management-v2.js','/admin-patches/admin-management-v2-stability.js'];
+    const adminPatches=['/admin-patches/admin-management-v2.js','/admin-patches/admin-management-v2-stability.js','/admin-patches/admin-serial-tools-v1.js'];
     for(const src of adminPatches){
       if(html.includes(src))continue;
       const tag=`<script src="${src}" defer></script>`;
@@ -63,7 +63,7 @@ function commonHeaders(res,mode,role='unknown'){
   res.setHeader('X-Robots-Tag','noindex, nofollow, noarchive');
   res.setHeader('Referrer-Policy','same-origin');
   res.setHeader('Vary','Cookie');
-  res.setHeader('X-Bizu-Private-Proxy','v12.1-admin-v2');
+  res.setHeader('X-Bizu-Private-Proxy','v12.2-serial-admin');
   res.setHeader('X-Bizu-UI-Mode',mode);
   res.setHeader('X-Bizu-Session-Role',role);
 }
@@ -122,7 +122,7 @@ export default async function handler(req,res){
     res.statusCode=upstream.status;
     res.setHeader('Content-Type','text/html; charset=utf-8');
     commonHeaders(res,mode,role);
-    res.setHeader('X-Bizu-UI-Patch',mode==='admin'?'admin-management-v2+notices-stability':'questions-v2+quick-test-v2');
+    res.setHeader('X-Bizu-UI-Patch',mode==='admin'?'admin-management-v2+notices-stability+serial-tools-v1':'questions-v2+quick-test-v2');
     if(cookies.length)res.setHeader('Set-Cookie',cookies);
     return res.end(body);
   }catch(err){
