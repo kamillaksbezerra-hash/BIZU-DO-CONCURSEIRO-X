@@ -4,6 +4,7 @@
   "git": {
     "deploymentEnabled": {
       "main": true,
+      "fix/ia-cronograma-x-2026-09-09": true,
       "fix/private-proxy-css-2026-09-06": true,
       "fix/stale-session-login-2026-09-06": false,
       "fix/private-loading-timeout-2026-09-06": false,
@@ -23,7 +24,7 @@
     },
     {
       "source": "/api/study-planner",
-      "destination": "https://xizvzwvvtfavsxtyosso.supabase.co/functions/v1/bizu-cronograma-x-e2e-v2-temp"
+      "destination": "https://xizvzwvvtfavsxtyosso.supabase.co/functions/v1/bizu-cronograma-x-inspect-v2-temp"
     },
     {
       "source": "/api/study-timer",
